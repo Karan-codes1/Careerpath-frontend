@@ -17,7 +17,6 @@ export default function SignupPage() {
         e.preventDefault();
         try {
             const res = await api.post('/auth/signup', { name, email, password })
-            localStorage.setItem('token', res.data.jwtToken);
             router.push('/dashboard');
         } catch (error) {
             console.error('Signup failed:', error);

@@ -1,21 +1,10 @@
 import axios from 'axios'
 
 const api = axios.create({
-    baseURL:'http://localhost:8080'
+  baseURL: process.env.NEXT_PUBLIC_BASE_URL,
+  withCredentials: true // 🧠 this allows browser to send cookies (if this not done then we have to manually send cookie in every req)
+  // like axios.get('/profile', { withCredentials: true });
 });
-
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
-//Now, in the frontend code , there is no need to manually pass the token on each request:
 
 export default api
 
