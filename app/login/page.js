@@ -3,10 +3,11 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Eye, EyeOff } from 'lucide-react' // ✅ Lucide icons (you can also use other icons)
 import Link from "next/link"
+import { useAuth } from '@/context/AuthContext.js'
 import api from '@/utils/api'
 
 export default function LoginPage() {
-
+    const { setIsLoggedIn } = useAuth()
     const router = useRouter();
     const [email, setemail] = useState('')
     const [password, setpassword] = useState('')
@@ -18,6 +19,7 @@ export default function LoginPage() {
 
         try {
             const res = await api.post('/auth/login', { email, password }); // backend called using axios
+            setIsLoggedIn(true)
             router.push('/dashboard')
 
         } catch (error) {
@@ -27,7 +29,7 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center">
+        <div className=" my-14 overflow-hidden flex items-center justify-center">
             <form onSubmit={handleLogin} className="bg-white p-6 rounded shadow-md w-96">
                 <h2 className="text-2xl font-bold mb-4">Login</h2>
 

@@ -25,7 +25,7 @@ export default function SignupPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center">
+        <div className=" my-14 flex items-center justify-center">
             <form onSubmit={handleSignup} className="bg-white p-6 rounded shadow-md w-96">
                 <h2 className="text-2xl font-bold mb-4">Signup</h2>
                 {error && <p className="text-red-500">{error}</p>}
