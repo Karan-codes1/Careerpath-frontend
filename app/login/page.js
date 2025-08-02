@@ -1,9 +1,10 @@
 'use client'
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Eye, EyeOff } from 'lucide-react' // ✅ Lucide icons (you can also use other icons)
 import Link from "next/link"
 import { useAuth } from '@/context/AuthContext.js'
+import { useSearchParams } from 'next/navigation'; // for pop up
 import api from '@/utils/api'
 
 export default function LoginPage() {
@@ -13,6 +14,24 @@ export default function LoginPage() {
     const [password, setpassword] = useState('')
     const [error, seterror] = useState('')
     const [showpassword, setshowpassword] = useState(false)
+    // pop up 
+    const searchParams = useSearchParams();
+    const [popupMessage, setPopupMessage] = useState('');
+    const [showPopup, setShowPopup] = useState(false);
+
+
+    useEffect(() => {
+        const message = searchParams.get('message');
+        if (message === 'login_required') {
+            setPopupMessage('Please login or create an account to access the roadmap.');
+            setShowPopup(true);
+
+            // Auto-hide popup after 3 seconds
+            const timer = setTimeout(() => setShowPopup(false), 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [searchParams]);
+
 
     const handleLogin = async (e) => {
         e.preventDefault()// Prevent page refresh
@@ -20,7 +39,7 @@ export default function LoginPage() {
         try {
             const res = await api.post('/auth/login', { email, password }); // backend called using axios
             setIsLoggedIn(true)
-            router.push('/dashboard')
+            router.push('/')
 
         } catch (error) {
             console.error('Login failed:', error);
@@ -30,6 +49,15 @@ export default function LoginPage() {
 
     return (
         <div className=" my-14 overflow-hidden flex items-center justify-center">
+
+            {showPopup && (
+                <div className="my-10 absolute top-6 left-1/2 transform -translate-x-1/2 bg-yellow-100 border border-yellow-400 text-yellow-800 px-4 py-2 rounded shadow z-50 transition-all">
+                    {popupMessage}
+                </div>
+            )}
+
+
+
             <form onSubmit={handleLogin} className="bg-white p-6 rounded shadow-md w-96">
                 <h2 className="text-2xl font-bold mb-4">Login</h2>
 

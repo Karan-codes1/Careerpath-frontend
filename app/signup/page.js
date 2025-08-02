@@ -3,9 +3,11 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Eye, EyeOff } from 'lucide-react' // ✅ Lucide icons (you can also use other icons)
 import api from '@/utils/api'
+import { useAuth } from '@/context/AuthContext.js'
 import Link from "next/link"
 
 export default function SignupPage() {
+    const {setIsLoggedIn} = useAuth()
     const router = useRouter();
     const [name, setname] = useState('')
     const [email, setemail] = useState('')
@@ -17,7 +19,8 @@ export default function SignupPage() {
         e.preventDefault();
         try {
             const res = await api.post('/auth/signup', { name, email, password })
-            router.push('/dashboard');
+            setIsLoggedIn(true)
+            router.push('/');
         } catch (error) {
             console.error('Signup failed:', error);
             seterror(error?.response?.data?.message || 'Signup failed');
