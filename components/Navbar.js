@@ -9,7 +9,7 @@ import { useAuth } from '@/context/AuthContext.js'
 
 
 export default function Navbar() {
-    const { isLoggedIn, setIsLoggedIn} = useAuth()
+    const { isLoggedIn, setIsLoggedIn } = useAuth()
     const [isOpen, setIsOpen] = useState(false)
     const router = useRouter()
 
@@ -30,21 +30,21 @@ export default function Navbar() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center h-16">
                     {/* Logo */}
-                    <Link href="/" className="text-2xl font-bold text-blue-600">
+                    <Link href="/" className="text-2xl font-bold text-[#008080]">
                         CareerPath
                     </Link>
 
                     {/* Desktop Links */}
                     <div className="hidden md:flex space-x-6 items-center">
-                        <Link href="/" className="text-gray-700 hover:text-blue-600 font-medium">Home</Link>
-                        <Link href="/explore" className="text-gray-700 hover:text-blue-600 font-medium">Explore</Link>
+                        <Link href="/" className="text-gray-700 hover:text-[#008080] font-medium">Home</Link>
+                        <Link href="/explore" className="text-gray-700 hover:text-[#008080] font-medium">Explore</Link>
 
                         {isLoggedIn && (
                             <>
-                                <Link href="/profile" className="text-gray-700 hover:text-blue-600 font-medium">Profile</Link>
+                                <Link href="/profile" className="text-gray-700 hover:text-[#008080] font-medium">Profile</Link>
                                 <button
                                     onClick={handleLogout}
-                                    className="bg-white text-gray-700 hover:text-blue-600 px-4 py-2 rounded-md text-sm transition duration-150"
+                                    className="bg-white text-gray-700 hover:text-[#008080] px-4 py-2 rounded-md text-sm transition duration-150"
                                 >
                                     Logout
                                 </button>
@@ -53,16 +53,20 @@ export default function Navbar() {
 
                         {!isLoggedIn && (
                             <>
-                                <Link href="/login">
-                                    <button className="bg-white text-gray-700 hover:bg-gray-100 hover:text-blue-600 px-4 py-2 rounded-md text-sm transition duration-150">
-                                        Login
-                                    </button>
-                                </Link>
-                                <Link href="/signup">
-                                    <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm transition duration-150">
-                                        Sign Up
-                                    </button>
-                                </Link>
+                                <button
+                                    onClick={() => router.push('/login')}
+                                    className="bg-white text-gray-700 hover:bg-gray-100 hover:text-[#008080] px-4 py-2 rounded-md text-sm transition duration-150"
+                                >
+                                    Login
+                                </button>
+
+                                <button
+                                    onClick={() => router.push('/signup')}
+                                    className="bg-[#008080] hover:bg-[#006666] text-white px-4 py-2 rounded-md text-sm transition duration-150"
+                                >
+                                    Sign Up
+                                </button>
+
                             </>
                         )}
                     </div>
@@ -99,13 +103,13 @@ export default function Navbar() {
                     {!isLoggedIn && (
                         <>
                             <Link href="/login">
-                                <button className="w-full mt-2 bg-white text-gray-700 hover:bg-gray-100 hover:text-blue-600 py-2 rounded-md text-sm transition duration-150">
+                                <button className="w-full mt-2 bg-white text-gray-700 hover:bg-gray-100 hover:text-[#008080] py-2 rounded-md text-sm transition duration-150">
                                     Login
                                 </button>
                             </Link>
                             <Link href="/signup">
-                                <button className="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md text-sm transition duration-250">
-                                    Sign Up
+                                <button className="w-full mt-2 bg-[#008080] hover:bg-[#008080] text-white py-2 rounded-md text-sm transition duration-250">
+                                    Sign Up oooo
                                 </button>
                             </Link>
                         </>
