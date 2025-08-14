@@ -1,69 +1,239 @@
 'use client'
-import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import api from '@/utils/api';
-import { useAuth } from '@/context/AuthContext';
-import MilestoneCard from '@/components/MilestoneCard';
+
+import { useEffect, useState } from 'react'
+import { useParams, useRouter } from 'next/navigation'
+import api from '@/utils/api'
+import MilestoneCard from '@/components/MilestoneCard'
+import { useAuth } from '@/context/AuthContext'
+import { ArrowLeft, CheckCircle, Circle, Clock, Trophy, Users, Calendar, Lock, Sparkles } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Progress } from '@/components/ui/progress'
 
 export default function RoadmapDetailPage() {
-    const { id } = useParams(); // get :id from URL
-    const router = useRouter();
-    const { isLoggedIn, setIsLoggedIn } = useAuth(); // access isLoggedIn
-    const [milestones, setMilestones] = useState([]);
-    const [roadmap, setRoadmap] = useState(null);
-    const [showLoginPopup, setShowLoginPopup] = useState(false);
+  const { id } = useParams()
+  const router = useRouter()
+  const { isLoggedIn } = useAuth()
+  const [remainingMilestones, setRemainingMilestones] = useState(0)
+  const [completedMilestones, setCompletedMilestones] = useState(0)
+  const [progress, setProgress] = useState(0)
+  const [roadmap, setRoadmap] = useState(null)
+  const [milestones, setMilestones] = useState([])
 
-    useEffect(() => {
-        if (isLoggedIn === false) {
-            // User is not logged in, redirect to login page
-             router.push('/login?message=login_required');
-        }
-    }, [isLoggedIn]);
+  // Navigate to AI Project Ideas page
+  const handleGetProjectIdeas = () => {
+    if (!roadmap?.title) return
+    router.push(`/projects?roadmapName=${encodeURIComponent(roadmap.title)}`)
+  }
 
-    useEffect(() => {
-        const fetchRoadmapDetails = async () => {
-            try {
-                const res = await api.get(`/roadmap/${id}`); 
-                setRoadmap(res.data.roadmap);
-                setMilestones(res.data.milestones);
-            } catch (error) {
-                console.error('Error fetching roadmap details:', error);
-            }
-        };
+   useEffect(() => {
+    if (isLoggedIn === false) {
+      router.push("/login?message=login_required");
+    }
+  }, [isLoggedIn, router]);
 
-        if (id && isLoggedIn) fetchRoadmapDetails();
-    }, [id, isLoggedIn]);
+  const handleMilestoneComplete = async (milestoneId) => {
+    if (!id) return console.error("Missing roadmap ID.")
 
-    if (isLoggedIn === false || !roadmap) {
-        return (
-            <div className="text-center mt-10">
-                {showLoginPopup && (
-                    <div className="fixed top-10 left-1/2 transform -translate-x-1/2 bg-yellow-100 border border-yellow-400 text-yellow-800 px-6 py-3 rounded shadow-lg z-50 transition-all">
-                        Please login or create an account to access the roadmap.
-                    </div>
-                )}
-                <div>Loading...</div>
-            </div>
-        );
+    try {
+      await api.put(`/roadmap/${id}`, {
+        milestoneId,
+        status: "completed",
+      })
+
+      const [milestonesRes, progressRes] = await Promise.all([
+        api.get(`/roadmap/${id}`),
+        api.get(`/roadmap/${id}/progress`)
+      ])
+
+      setMilestones(milestonesRes.data.milestones)
+      setProgress(progressRes.data.progressPercentage)
+      setRemainingMilestones(progressRes.data.remainingMilestones)
+      setCompletedMilestones(progressRes.data.completedMilestones)
+    } catch (err) {
+      console.error("Error updating milestone:", err)
+    }
+  }
+
+  const handleMilestoneDelete = async (milestoneId) => {
+    if (!id) return console.error("Missing roadmap ID.")
+
+    try {
+      await api.delete(`/roadmap/${id}`, { data: { milestoneid: milestoneId } })
+
+      const [milestonesRes, progressRes] = await Promise.all([
+        api.get(`/roadmap/${id}`),
+        api.get(`/roadmap/${id}/progress`)
+      ])
+
+      setMilestones(milestonesRes.data.milestones)
+      setProgress(progressRes.data.progressPercentage)
+      setRemainingMilestones(progressRes.data.remainingMilestones)
+      setCompletedMilestones(progressRes.data.completedMilestones)
+    } catch (error) {
+      console.error("Error deleting milestone:", error)
+    }
+  }
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await api.get(`/roadmap/${id}`)
+        setRoadmap(res.data.roadmap)
+        setMilestones(res.data.milestones)
+
+        const progressRes = await api.get(`/roadmap/${id}/progress`)
+        setProgress(progressRes.data.progressPercentage)
+        setRemainingMilestones(progressRes.data.remainingMilestones)
+        setCompletedMilestones(progressRes.data.completedMilestones)
+      } catch (error) {
+        console.error('Error fetching roadmap details:', error)
+      }
     }
 
+    if (id && isLoggedIn) fetchData()
+  }, [id, isLoggedIn])
 
- return (
-  <div className="p-6 max-w-3xl mx-auto">
-    <h1 className="text-3xl font-bold mb-2 text-center">{roadmap?.title}</h1>
+  if (!isLoggedIn || !roadmap) {
+    return (
+      <div className="text-center mt-10">
+        <div>Loading...</div>
+      </div>
+    )
+  }
 
-    {/* Roadmap Description */}
-    {roadmap?.description && (
-      <p className="text-gray-600 text-center max-w-2xl mx-auto mb-6">
-        {roadmap.description}
-      </p>
-    )}
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white border-b">
+        <div className="max-w-6xl mx-auto px-6 py-4">
+          <div className="flex items-center gap-4 mb-6 ml-9">
+            <button
+              onClick={() => router.push('/?message=GetToRoadmaps')}
+              className="flex items-center gap-2 text-gray-900"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back to Roadmaps
+            </button>
+          </div>
 
-    <div className="space-y-8 py-4">
-      {milestones.map((milestone) => (
-        <MilestoneCard key={milestone._id} milestone={milestone} />
-      ))}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2">
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <h1 className="mb-2 text-4xl font-extrabold tracking-wide bg-gradient-to-r from-blue-600 to-indigo-600 text-transparent bg-clip-text underline underline-offset-4 decoration-indigo-300">
+                    {roadmap.title}
+                  </h1>
+                  <p className="text-gray-600 mb-4">{roadmap.description}</p>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-2 mb-6">
+                {roadmap.skills.map((tag, index) => (
+                  <Badge
+                    key={index}
+                    variant="secondary"
+                    className="bg-gray-100 rounded-lg"
+                  >
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div className="text-center p-4 bg-gray-50 rounded-lg">
+                  <Clock className="w-6 h-6 mx-auto mb-2 text-blue-500" />
+                  <div className="text-sm text-gray-500">Duration</div>
+                  <div>{roadmap.duration}</div>
+                </div>
+                <div className="text-center p-4 bg-gray-50 rounded-lg">
+                  <Trophy className="w-6 h-6 mx-auto mb-2 text-yellow-500" />
+                  <div className="text-sm text-gray-500">Difficulty</div>
+                  <div>{roadmap.difficulty}</div>
+                </div>
+                <div className="text-center p-4 bg-gray-50 rounded-lg">
+                  <Users className="w-6 h-6 mx-auto mb-2 text-green-500" />
+                  <div className="text-sm text-gray-500">Enrolled</div>
+                  <div>{roadmap.learners.toLocaleString()}</div>
+                </div>
+                <div className="text-center p-4 bg-gray-50 rounded-lg">
+                  <CheckCircle className="w-6 h-6 mx-auto mb-2 text-purple-500" />
+                  <div className="text-sm text-gray-500">Success Rate</div>
+                  <div>{roadmap.completionRate}%</div>
+                </div>
+              </div>
+
+              {/* AI Project Ideas Button */}
+              <button
+                onClick={handleGetProjectIdeas}
+                className="flex items-center gap-2 bg-gray-800 text-white px-4 py-2 rounded-lg"
+              >
+                <Sparkles className="w-4 h-4" />
+                Get AI Project Ideas
+              </button>
+            </div>
+
+            {/* Progress Card */}
+            <div>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Your Progress</CardTitle>
+                  <CardDescription>
+                    {progress === 0
+                      ? "Let's get started! "
+                      : progress === 100
+                        ? '🎉 You’ve completed the roadmap. Great job!'
+                        : "Keep going! You're doing great."}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div>
+                      <div className="flex justify-between mb-2">
+                        <span className="text-sm">Overall Progress</span>
+                        <span className="text-sm">{progress}%</span>
+                      </div>
+                      <Progress className="bg-black h-3" value={progress} />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 text-center">
+                      <div>
+                        <div>{completedMilestones}</div>
+                        <div className="text-sm text-gray-500">Completed</div>
+                      </div>
+                      <div>
+                        <div>{remainingMilestones}</div>
+                        <div className="text-sm text-gray-500">Remaining</div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Milestones */}
+      <div className="max-w-6xl mx-auto px-6 py-10">
+        <div className="flex items-center gap-3 mb-8">
+          <h2 className="text-2xl font-semibold">Milestones</h2>
+          <Badge variant="outline">{milestones.length} steps</Badge>
+        </div>
+
+        <div className="space-y-6">
+          {milestones.map((milestone, index) => (
+            <MilestoneCard
+              key={milestone._id}
+              milestone={milestone}
+              index={index}
+              onComplete={handleMilestoneComplete}
+              onDelete={handleMilestoneDelete}
+              onOpen={(id) => router.push(`/resource/milestone/${id}`)}
+            />
+          ))}
+        </div>
+      </div>
     </div>
-  </div>
-);
-};
+  )
+}

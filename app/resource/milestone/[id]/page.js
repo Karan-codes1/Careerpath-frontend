@@ -1,79 +1,243 @@
-'use client';
+"use client";
+
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import api from "@/utils/api";
 import { useAuth } from "@/context/AuthContext";
-import Link from "next/link";
+import { ResourceItem } from "@/components/ResourceCard";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import {
+  Search,
+  Filter,
+  VideoIcon,
+  BookIcon,
+  FileTextIcon,
+  GraduationCapIcon,
+} from "lucide-react";
 
 export default function ViewAllResources() {
   const { id } = useParams();
-  const router = useRouter(); // for redirection
-  const { isLoggedIn } = useAuth(); // access auth status
+  const router = useRouter();
+  const { isLoggedIn } = useAuth();
 
-  const [resources, setresources] = useState([]);
-  const [loading, setloading] = useState(true);
-  const [milestone, setmilestone] = useState(null);
+  const [resources, setResources] = useState([]);
+  const [milestone, setMilestone] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterType, setFilterType] = useState("all");
+  const [difficultyFilter, setDifficultyFilter] = useState("all");
+  const difficultyFilters = ["all", "beginner", "intermediate", "advanced"];
+
+
+  const [clickedResourceId, setClickedResourceId] = useState(null);
 
   useEffect(() => {
-    // If not logged in then redirect to homepage
     if (!isLoggedIn) {
-      router.push('/');
-      return; // prevents further execution
+      router.push("/");
+      return;
     }
 
     const fetchResources = async () => {
       try {
         const res = await api.get(`/resource/milestone/${id}`);
-        setmilestone(res.data.milestone);
-        setresources(res.data.resources);
+        setMilestone(res.data.milestone);
+        setResources(res.data.resources);
       } catch (error) {
-        console.error('Error fetching full resource list:', error);
+        console.error("Error fetching full resource list:", error);
       }
-      setloading(false);
+      setLoading(false);
     };
 
     fetchResources();
   }, [id, isLoggedIn, router]);
 
+  const filteredResources = resources.filter((res) => {
+   
+
+    const matchesType =
+      filterType === "all" || filterType === ""
+        ? true
+        : res.type === filterType;
+
+    const matchesDifficulty =
+      difficultyFilter === "all" || difficultyFilter === ""
+        ? true
+        : res.difficulty === difficultyFilter;
+
+    return  matchesType && matchesDifficulty;
+  });
+
+  const typeCounts = resources.reduce(
+    (acc, curr) => {
+      acc[curr.type] = (acc[curr.type] || 0) + 1;
+      return acc;
+    },
+    { video: 0, article: 0, book: 0, course: 0 }
+  );
+
+  const typeFilters = [
+    { value: "all", label: "All Types", icon: Filter },
+    { value: "video", label: "Videos", icon: VideoIcon },
+    { value: "article", label: "Articles", icon: FileTextIcon },
+    { value: "book", label: "Books", icon: BookIcon },
+    { value: "course", label: "Courses", icon: GraduationCapIcon },
+  ];
+
+  const currentIcon =
+    typeFilters.find((f) => f.value === filterType)?.icon || Filter;
+  const CurrentIcon = currentIcon;
+
   return (
-    <div className="max-w-3xl mx-auto p-6">
+    <div className="max-w-4xl mx-auto p-6">
       {loading ? (
         <p className="mt-4 text-gray-500">Loading resources...</p>
       ) : (
         <>
-          <h1 className="text-2xl font-bold text-gray-800 mt-4 mb-2">
-            {milestone?.title || 'Milestone Resources'}
-          </h1>
-          <p className="text-gray-600 mb-4">{milestone?.description}</p>
+          <h1 className="text-2xl font-bold text-[rgb(0,128,128)] mt-4 mb-2">
+            {milestone?.order && (
+             <span className="text-[rgb(0,128,128)] bg-clip-text font-bold">
+  Milestone {milestone.order}:</span>
 
-          {resources.length === 0 ? (
-            <p className="text-gray-500">No resources available for this milestone yet.</p>
-          ) : (
-            <ul className="space-y-3">
-              {resources.map((res) => (
-                <li
-                  key={res._id}
-                  className="bg-white border border-gray-200 p-4 rounded-md shadow-sm"
-                >
-                  <div className="flex justify-between items-center">
-                    <a
-                      href={res.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-700 font-medium hover:underline"
+  // <span>I am a div</span>
+            )}
+            {milestone?.title || "Milestone Resources"}
+          </h1>
+          <p className="text-gray-600 mb-6">{milestone?.description}</p>
+
+          {/* Filters Row: Resource Type Buttons (left) + Difficulty Filter (right) */}
+          <div className="flex flex-wrap md:flex-nowrap justify-between items-center gap-4 mb-6">
+
+            {/* Resource Type Buttons */}  
+            <div className="flex gap-3 flex-wrap">
+              {typeFilters
+                .filter((f) => f.value !== "all")
+                .map((filter) => {
+                  const Icon = filter.icon;
+                  const isActive = filterType === filter.value;
+                  const count = typeCounts[filter.value] || 0;
+
+                  return (
+                    <button
+                      key={filter.value}
+                      onClick={() => setFilterType(filter.value)}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-xl border text-left transition-all
+              ${isActive
+                          ? "bg-[#0c0c1d] text-white"
+                          : "bg-white border-gray-300 text-gray-800 hover:bg-gray-100"
+                        }`}
                     >
-                      {res.title}
-                    </a>
-                    <span className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded">
-                      {res.type}
-                    </span>
-                  </div>
-                </li>
+                      <Icon
+                        className={`w-4 h-4 ${isActive ? "text-white" : "text-gray-700"}`}
+                      />
+                      <div>
+                        <div className="text-sm font-medium">{filter.label}</div>
+                        <div className="text-xs opacity-70">
+                          {count} {count === 1 ? "item" : "items"}
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+            </div>
+
+            {/* Difficulty Filter */}
+            <div className="w-40">
+              <Select value={difficultyFilter} onValueChange={(val) => setDifficultyFilter(val)}>
+                <SelectTrigger className="bg-gray-100 w-full">
+                  <SelectValue placeholder="Difficulty" />
+                </SelectTrigger>
+                <SelectContent className="bg-white shadow-lg border border-gray-200">
+                  {difficultyFilters.map((filter) => (
+                    <SelectItem key={filter} value={filter}>
+                      {filter === "all"
+                        ? "All Levels"
+                        : filter.charAt(0).toUpperCase() + filter.slice(1)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Results Summary */}
+          <div className="flex items-center justify-between py-5">
+            <p className="text-sm text-muted-foreground">
+              Showing {filteredResources.length} of {resources.length} resources
+            </p>
+
+            {(searchQuery || filterType !== "all") && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setSearchQuery("");
+                  setFilterType("all");
+                  setDifficultyFilter("all");
+                }}
+                className="hover:bg-gray-100"
+              >
+                Clear filters
+              </Button>
+            )}
+          </div>
+
+          {/* Resource List */}
+          {filteredResources.length === 0 ? (
+            <p className="text-gray-500">No matching resources found.</p>
+          ) : (
+            <div className="space-y-4">
+              {filteredResources.map((res) => (
+                <div
+                  key={res._id}
+                  className={`rounded-lg transition-colors cursor-pointer ${clickedResourceId === res._id
+                    ? "bg-gray-100"
+                    : "bg-transparent"
+                    }`}
+                  onClick={() => {
+                    setClickedResourceId(
+                      clickedResourceId === res._id ? null : res._id
+                    )
+                    if (res.url) {
+                      window.open(res.url, "_blank");
+                    }
+
+                    setTimeout(() => {
+                      setClickedResourceId(null);
+                    }, 2000);
+                  }
+                  }
+                >
+                  <ResourceItem
+                    resource={{
+                      id: res._id,
+                      title: res.title,
+                      description: res.description,
+                      author: res.author,
+                      url: res.url,
+                      type: res.type,
+                      tags: res.tags || [],
+                      duration: res.duration || "",
+                      difficulty: res.difficulty || undefined,
+                      step: res.step || 0,
+                      isOptional: res.isOptional || false,
+                    }}
+                  />
+                </div>
               ))}
-            </ul>
+            </div>
           )}
         </>
-      )}
-    </div>
+      )
+      }
+    </div >
   );
 }

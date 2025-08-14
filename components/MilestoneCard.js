@@ -1,98 +1,124 @@
-'use client';
-import React, { useState, useRef, useEffect } from 'react';
-import Link from 'next/link';
-import api from '@/utils/api';
+'use client'
 
-export default function MilestoneCard({ milestone }) {
-  const [expanded, setExpanded] = useState(false);
-  const [resources, setResources] = useState([]);
-  const [loading, setLoading] = useState(false);
+import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Clock, Calendar } from 'lucide-react'
+import { CheckCircle, Circle, Lock } from 'lucide-react'
 
-  const contentRef = useRef(null);
-  const [height, setHeight] = useState('0px');
+export function StatusIcon({ status, onClick }) {
+  const baseClasses = "w-6 h-6"
+  const isClickable = typeof onClick === 'function'
+  const iconProps = {
+    className: `${baseClasses} ${isClickable ? 'cursor-pointer' : ''}`,
+    onClick,
+  }
 
-  const toggleExpand = async () => {
-    if (!expanded && resources.length === 0) {
-      setLoading(true);
-      try {
-        const res = await api.get(`/resource/milestone/${milestone._id}`);
-        setResources(res.data.resources.slice(0, 3));
-      } catch (err) {
-        console.error('Error fetching resources:', err);
-      }
-      setLoading(false);
-    }
+  switch (status) {
+    case 'completed':
+      return <CheckCircle {...iconProps} className={`${baseClasses} text-green-500`} />
+    case 'in_progress':
+      return <Clock {...iconProps} className={`${baseClasses} text-blue-500`} />
+    case 'not_started':
+      return <Circle {...iconProps} className={`${baseClasses} text-indigo-500`} />
+    case 'locked':
+      return <Lock className={`${baseClasses} text-gray-400`} />
+    default:
+      return <Circle {...iconProps} className={`${baseClasses} text-gray-300`} />
+  }
+}
 
-    setExpanded((prev) => !prev);
-  };
+export function StatusBadge({ status }) {
+  const variants = {
+    completed: 'bg-green-100 text-green-700',
+    in_progress: 'bg-blue-100 text-blue-700',
+    locked: 'bg-gray-100 text-gray-500',
+    not_started: 'bg-indigo-100 text-indigo-700',
+  }
 
-  useEffect(() => {
-    if (contentRef.current) {
-      if (expanded) {
-        setHeight(`${contentRef.current.scrollHeight}px`);
-      } else {
-        setHeight('0px');
-      }
-    }
-  }, [expanded, resources]);
+  const formattedStatus =
+    status === 'in_progress'
+      ? 'In Progress'
+      : status === 'not_started'
+      ? 'Start Now'
+      : typeof status === 'string'
+      ? status.charAt(0).toUpperCase() + status.slice(1)
+      : 'Unknown'
 
   return (
-    <div className="max-w-2xl w-full">
-      {/* Milestone card */}
-      <div
-        onClick={toggleExpand}
-        className="flex items-start gap-3 bg-white p-4 rounded-lg shadow-sm border-l-4 border-blue-500 hover:shadow-md transition cursor-pointer"
-      >
-        <div className="w-3 h-3 mt-2 rounded-full bg-blue-500 flex-shrink-0" />
-        <div>
-          <h3 className="text-lg font-semibold text-gray-800">{milestone.title}</h3>
-          <p className="text-sm text-gray-600">{milestone.description}</p>
-        </div>
-      </div>
+    <Badge className={variants[status]}>
+      {formattedStatus}
+    </Badge>
+  )
+}
 
-      {/* Smooth expanding panel */}
-      <div
-        style={{
-          maxHeight: height,
-          transition: 'max-height 0.5s ease',
-        }}
-        className="ml-6 overflow-hidden mt-2"
-        ref={contentRef}
-      >
-        <div className="bg-gray-50 p-3 rounded-md border border-gray-200">
-          {loading ? (
-            <p className="text-sm text-gray-500">Loading resources...</p>
-          ) : (
-            <>
-              <h4 className="text-sm font-semibold text-gray-700 mb-1">Top Resources:</h4>
-              <ul className="list-disc pl-5 text-sm space-y-1">
-                {resources.map((res) => (
-                  <li key={res._id}>
-                    <a
-                      href={res.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline"
-                    >
-                      {res.title}
-                    </a>
-                    <span className="ml-2 text-xs text-gray-500">({res.type})</span>
-                  </li>
-                ))}
-                {resources.length === 0 && (
-                  <li className="text-sm text-gray-500">No resources yet for this milestone.</li>
-                )}
-              </ul>
-              <Link
-                href={`/resource/milestone/${milestone._id}`}
-                className="inline-block mt-3 text-sm text-blue-600 hover:underline"
-              >
-                View All Resources →
-              </Link>
-            </>
-          )}
+import { Progress } from '@/components/ui/progress'
+
+export default function MilestoneCard({ milestone, index, onComplete, onDelete, onOpen }) {
+  return (
+    <Card
+      className={`transition-all duration-200 hover:shadow-md ${milestone.status === 'locked' ? 'opacity-60' : 'cursor-pointer'}`}
+      onClick={() => {
+        if (milestone.status !== 'locked') {
+          onOpen(milestone._id)
+        }
+      }}
+    >
+      <CardHeader>
+        <div className="flex items-start gap-4">
+          {/* Status Icon */}
+          <div className="flex-shrink-0 mt-1">
+            <StatusIcon
+              status={milestone.status}
+              onClick={(e) => {
+                e.stopPropagation()
+                if (milestone.status === 'completed') {
+                  onDelete(milestone._id)
+                } else if (milestone.status !== 'locked') {
+                  onComplete(milestone._id)
+                }
+              }}
+            />
+          </div>
+
+          {/* Content */}
+          <div className="flex-1">
+            <div className="flex items-start justify-between mb-2">
+              <div>
+                <CardTitle className="text-lg mb-1">
+                  {index + 1}. {milestone.title}
+                </CardTitle>
+                <CardDescription>{milestone.description}</CardDescription>
+              </div>
+              <StatusBadge status={milestone.status} />
+            </div>
+
+            {/* Details */}
+            <div className="flex items-center gap-6 mt-4 text-sm text-gray-500">
+              <div className="flex items-center gap-1">
+                <Clock className="w-4 h-4" />
+                {milestone.duration}
+              </div>
+              {milestone.completionDate && (
+                <div className="flex items-center gap-1">
+                  <Calendar className="w-4 h-4" />
+                  Completed {new Date(milestone.completionDate).toLocaleDateString()}
+                </div>
+              )}
+            </div>
+
+            {/* Progress Bar if in progress */}
+            {milestone.status === 'in-progress' && milestone.progress && (
+              <div className="mt-4">
+                <div className="flex justify-between mb-2">
+                  <span className="text-sm">Progress</span>
+                  <span className="text-sm">{milestone.progress}%</span>
+                </div>
+                <Progress value={milestone.progress} className="h-2" />
+              </div>
+            )}
+          </div>
         </div>
-      </div>
-    </div>
-  );
+      </CardHeader>
+    </Card>
+  )
 }

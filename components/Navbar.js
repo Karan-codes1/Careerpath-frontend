@@ -26,11 +26,11 @@ export default function Navbar() {
     const toggleMenu = () => setIsOpen(!isOpen)
 
     return (
-        <nav className="bg-white border-b shadow-sm sticky top-0 z-50">
+        <nav className="bg-white border-b shadow-sm sticky top-0 z-50 bg-">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center h-16">
                     {/* Logo */}
-                    <Link href="/" className="text-2xl font-bold text-[#008080]">
+                    <Link href="/" className="mb-2 text-2xl font-extrabold tracking-wide bg-gradient-to-r from-blue-600 to-indigo-600 text-transparent bg-clip-text  decoration-indigo-300">
                         CareerPath
                     </Link>
 

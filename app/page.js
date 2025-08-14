@@ -37,12 +37,22 @@ const iconMap = {
   barchart2: BarChart2,
 };
 import RoadmapCard from '@/components/RoadmapCard';
-
+import { useSearchParams } from 'next/navigation';
 
 
 export default function DashboardPage() {
+
+
   const roadmapSectionRef = useRef(null);
+  const searchParams = useSearchParams();
   const [roadmaps, setRoadmaps] = useState([]);
+
+  useEffect(() => {
+    const message = searchParams.get("message");
+    if (message === "GetToRoadmaps" && roadmapSectionRef.current) {
+      roadmapSectionRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const fetchRoadmaps = async () => {
@@ -79,9 +89,6 @@ export default function DashboardPage() {
             Explore Roadmaps ⏷
           </button>
 
-          {/* <button className="border border-gray-300 text-black px-5 py-2 rounded-md font-medium text-sm flex items-center gap-1">
-      ▶ Watch Demo
-    </button> */}
         </div>
 
         <div className="flex justify-center gap-10 text-center text-gray-700 border-t pt-6 max-w-xl mx-auto">
@@ -113,18 +120,25 @@ export default function DashboardPage() {
               Explore our comprehensive collection of career roadmaps. Each path is carefully crafted to take you from beginner to professional level.
             </p>
           </section>
+
+
           {/* Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl w-full">
             {roadmaps.length > 0 ? (
               roadmaps.map((roadmap) => {
-                const IconComponent = iconMap[roadmap.icon?.toLowerCase()] || Code; // fallback to Code if not found
+                const IconComponent = iconMap[roadmap.icon?.toLowerCase()] || Code;
 
                 return (
-                  <RoadmapCard
+                  <Link
                     key={roadmap._id}
-                    {...roadmap}
-                    icon={<IconComponent className="w-6 h-6" />}
-                  />
+                    href={`/roadmap/${roadmap._id}`} 
+                    className="hover:shadow-lg transition-shadow"
+                  >
+                    <RoadmapCard
+                      {...roadmap}
+                      icon={<IconComponent className="w-6 h-6" />}
+                    />
+                  </Link>
                 );
               })
             ) : (
@@ -132,8 +146,8 @@ export default function DashboardPage() {
                 No roadmaps available.
               </p>
             )}
-
           </div>
+
         </div>
       </div>
 
