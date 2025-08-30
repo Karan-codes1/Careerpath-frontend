@@ -12,49 +12,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-
-// const newprojects = [
-//   {
-//     title: "Personal Blog API",
-//     description: "Create a RESTful API for a personal blog that allows users to create, read, update, and delete blog posts.",
-//     requiredSkills: ["Node.js", "Express", "MongoDB"],
-//     keyFeatures: [
-//       "CRUD operations for posts",
-//       "User authentication",
-//       "Commenting system"
-//     ],
-//     difficulty: "Beginner",
-//     duration: "4-6 weeks"
-//   },
-//   {
-//     title: "E-commerce Backend",
-//     description: "Develop a backend service for an e-commerce platform that handles product listings, user accounts, and orders.",
-//     requiredSkills: ["Node.js", "Express", "MongoDB", "JWT"],
-//     keyFeatures: [
-//       "Product management",
-//       "User authentication and authorization",
-//       "Order processing"
-//     ],
-//     difficulty: "Intermediate",
-//     duration: "6-8 weeks"
-//   },
-//   {
-//     title: "Real-time Chat Application",
-//     description: "Build a real-time chat application with features like private messaging, group chats, and message history.",
-//     requiredSkills: ["Node.js", "Socket.io", "MongoDB", "Redis"],
-//     keyFeatures: [
-//       "Real-time messaging",
-//       "User presence indicators",
-//       "Message storage and retrieval"
-//     ],
-//     difficulty: "Advanced",
-//     duration: "8-10 weeks"
-//   }
-// ];
-
-
-
-
 export default function RoadmapProjects() {
   const searchParams = useSearchParams();
   const roadmapName = searchParams.get("roadmapName") || "";

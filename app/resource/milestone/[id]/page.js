@@ -78,7 +78,7 @@ export default function ViewAllResources() {
 
   const typeCounts = resources.reduce(
     (acc, curr) => {
-      acc[curr.type] = (acc[curr.type] || 0) + 1;
+      acc[curr.type] = (acc[curr.type] || 0) + 1; // type is from resource schema 
       return acc;
     },
     { video: 0, article: 0, book: 0, course: 0 }

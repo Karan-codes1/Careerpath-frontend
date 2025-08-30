@@ -8,6 +8,7 @@ import { useAuth } from '@/context/AuthContext'
 import { ArrowLeft, CheckCircle, Circle, Clock, Trophy, Users, Calendar, Lock, Sparkles } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 
@@ -234,6 +235,23 @@ export default function RoadmapDetailPage() {
           ))}
         </div>
       </div>
+
+     {/* Take the Quiz CTA */}
+{/* Take the Quiz CTA */}
+<div className="max-w-6xl mx-auto px-6 py-10 flex flex-col items-center text-center">
+  <p className="text-2xl font-bold text-gray-800 mb-4">
+    Ready to test your skills? Take the quiz now!
+  </p>
+  <Link href={`/quiz/${id}`}>
+    <Button
+      className="bg-gray-800 hover:bg-gray-900 text-white px-6 py-3 rounded-lg text-lg font-semibold transition"
+    >
+      Take the Quiz
+    </Button>
+  </Link>
+</div>
+
+
     </div>
   )
 }
