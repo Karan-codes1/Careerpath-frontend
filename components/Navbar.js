@@ -30,15 +30,13 @@ export default function Navbar() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center h-16">
                     {/* Logo */}
-                    <Link href="/" className="mb-2 text-2xl font-extrabold tracking-wide bg-gradient-to-r from-blue-600 to-indigo-600 text-transparent bg-clip-text  decoration-indigo-300">
+                    <Link href="/" className="mb-2 text-2xl font-extrabold tracking-wide bg-[#339999] text-transparent bg-clip-text  decoration-indigo-300">
                         CareerPath
                     </Link>
 
                     {/* Desktop Links */}
                     <div className="hidden md:flex space-x-6 items-center">
                         <Link href="/" className="text-gray-700 hover:text-[#008080] font-medium">Home</Link>
-                        <Link href="/explore" className="text-gray-700 hover:text-[#008080] font-medium">Explore</Link>
-
                         {isLoggedIn && (
                             <>
                                 <Link href="/profile" className="text-gray-700 hover:text-[#008080] font-medium">Profile</Link>
@@ -109,7 +107,7 @@ export default function Navbar() {
                             </Link>
                             <Link href="/signup">
                                 <button className="w-full mt-2 bg-[#008080] hover:bg-[#008080] text-white py-2 rounded-md text-sm transition duration-250">
-                                    Sign Up oooo
+                                    Sign Up
                                 </button>
                             </Link>
                         </>

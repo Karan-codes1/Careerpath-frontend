@@ -2,11 +2,13 @@
 
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Clock, Calendar } from 'lucide-react'
+import { Clock } from 'lucide-react'
 import { CheckCircle, Circle, Lock } from 'lucide-react'
+import { Progress } from '@/components/ui/progress'
 
+// --- Status Icon ---
 export function StatusIcon({ status, onClick }) {
-  const baseClasses = "w-6 h-6"
+  const baseClasses = "w-4 h-4 sm:w-5 sm:h-5" 
   const isClickable = typeof onClick === 'function'
   const iconProps = {
     className: `${baseClasses} ${isClickable ? 'cursor-pointer' : ''}`,
@@ -27,6 +29,7 @@ export function StatusIcon({ status, onClick }) {
   }
 }
 
+// --- Status Badge ---
 export function StatusBadge({ status }) {
   const variants = {
     completed: 'bg-green-100 text-green-700',
@@ -45,28 +48,38 @@ export function StatusBadge({ status }) {
       : 'Unknown'
 
   return (
-    <Badge className={variants[status]}>
+    <Badge
+      className={`
+        ${variants[status]}
+        text-[9px] sm:text-[10px] md:text-xs
+        py-0.5 px-1 sm:py-0.5 sm:px-1.5 md:py-1 md:px-2
+        rounded-md
+      `}
+    >
       {formattedStatus}
     </Badge>
   )
 }
 
-import { Progress } from '@/components/ui/progress'
-
+// --- Milestone Card ---
 export default function MilestoneCard({ milestone, index, onComplete, onDelete, onOpen }) {
   return (
     <Card
-      className={`transition-all duration-200 hover:shadow-md ${milestone.status === 'locked' ? 'opacity-60' : 'cursor-pointer'}`}
+      className={`transition-all duration-200 hover:shadow-md ${
+        milestone.status === 'locked' ? 'opacity-60' : 'cursor-pointer'
+      } p-2 sm:p-3 md:p-3`}
       onClick={() => {
         if (milestone.status !== 'locked') {
           onOpen(milestone._id)
         }
       }}
     >
-      <CardHeader>
-        <div className="flex items-start gap-4">
+      <CardHeader className="p-0">
+        {/* ✅ Changed layout: inline on phone, stacked on larger screens */}
+        <div className="flex flex-row sm:flex-row sm:items-start gap-2 sm:gap-3">
+          
           {/* Status Icon */}
-          <div className="flex-shrink-0 mt-1">
+          <div className="flex-shrink-0 flex items-center">
             <StatusIcon
               status={milestone.status}
               onClick={(e) => {
@@ -81,39 +94,38 @@ export default function MilestoneCard({ milestone, index, onComplete, onDelete, 
           </div>
 
           {/* Content */}
-          <div className="flex-1">
-            <div className="flex items-start justify-between mb-2">
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-1 sm:mb-2">
               <div>
-                <CardTitle className="text-lg mb-1">
+                {/* Title aligned with icon */}
+                <CardTitle className="text-sm sm:text-base md:text-base mb-0.5">
                   {index + 1}. {milestone.title}
                 </CardTitle>
-                <CardDescription>{milestone.description}</CardDescription>
+                <CardDescription className="text-xs sm:text-sm md:text-sm text-gray-600">
+                  {milestone.description}
+                </CardDescription>
               </div>
-              <StatusBadge status={milestone.status} />
+              <div className="mt-1 sm:mt-0">
+                <StatusBadge status={milestone.status} />
+              </div>
             </div>
 
             {/* Details */}
-            <div className="flex items-center gap-6 mt-4 text-sm text-gray-500">
+            <div className="flex flex-wrap gap-2 sm:gap-4 mt-1 sm:mt-2 text-xs sm:text-sm text-gray-500">
               <div className="flex items-center gap-1">
-                <Clock className="w-4 h-4" />
+                <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
                 {milestone.duration}
               </div>
-              {milestone.completionDate && (
-                <div className="flex items-center gap-1">
-                  <Calendar className="w-4 h-4" />
-                  Completed {new Date(milestone.completionDate).toLocaleDateString()}
-                </div>
-              )}
             </div>
 
-            {/* Progress Bar if in progress */}
-            {milestone.status === 'in-progress' && milestone.progress && (
-              <div className="mt-4">
-                <div className="flex justify-between mb-2">
-                  <span className="text-sm">Progress</span>
-                  <span className="text-sm">{milestone.progress}%</span>
+            {/* Progress */}
+            {milestone.status === 'in_progress' && milestone.progress && (
+              <div className="mt-1 sm:mt-2">
+                <div className="flex justify-between mb-1 text-xs sm:text-sm">
+                  <span>Progress</span>
+                  <span>{milestone.progress}%</span>
                 </div>
-                <Progress value={milestone.progress} className="h-2" />
+                <Progress value={milestone.progress} className="h-1.5 sm:h-2" />
               </div>
             )}
           </div>

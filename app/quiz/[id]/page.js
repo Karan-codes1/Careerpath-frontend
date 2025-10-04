@@ -63,17 +63,29 @@ export default function QuizPage() {
     }
 
     if (loading) return <div className="text-center mt-20 text-gray-500">Loading quiz...</div>
-    if (error) return <div className="text-center mt-20 text-red-500">{error}</div>
+
+    if (error) {
+        return (
+            <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50 px-4">
+                <img
+                    src="/undraw_page-not-found_6wni.svg"
+                    alt="Not Found"
+                    className="w-64 md:w-80 mb-6"
+                />
+                <p className="text-gray-600 text-base md:text-lg font-medium text-center">{error}</p>
+            </div>
+        )
+    }
+
     if (!quiz) return null
 
     const progress = (answers.length / quiz.questions.length) * 100
-
     const currentQ = quiz.questions[currentIndex]
     const userAnswer = answers.find(q => q.questionId === currentQ._id)?.selected
 
     if (showResults) {
         return (
-            <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 py-10 px-4 md:px-10 flex justify-center items-start">
+            <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 py-8 px-4 flex justify-center">
                 <QuizResults
                     score={calculateScore()}
                     total={quiz.questions.length}
@@ -90,32 +102,31 @@ export default function QuizPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 py-10 px-4 md:px-10 flex justify-center">
-            {/* 🔥 Wider container for quiz */}
-            <div className="w-full max-w-4xl">
+        <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 py-6 px-2 flex justify-center">
+            <div className="w-full max-w-2xl md:max-w-4xl">
                 {/* Header + Progress */}
-                <Card className="shadow-xl rounded-2xl overflow-hidden mb-6">
-                    <CardHeader className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-5">
-                        <CardTitle className="flex justify-between items-center font-semibold text-lg md:text-xl">
+                <Card className="shadow-xl rounded-2xl overflow-hidden mb-4 md:mb-6">
+                    <CardHeader className="bg-[#339999] text-white p-4 md:p-5">
+                        <CardTitle className="flex justify-between items-center font-semibold text-base md:text-lg">
                             <span>{quiz.title}</span>
-                            <span className="text-sm md:text-base">
+                            <span className="text-xs md:text-sm">
                                 Question {currentIndex + 1} / {quiz.questions.length}
                             </span>
                         </CardTitle>
-                        <div className="mt-3">
+                        <div className="mt-2">
                             <div className="flex justify-between text-xs text-gray-200 mb-1">
                                 <span>{Math.round(progress)}% completed</span>
                             </div>
                             <Progress
                                 value={progress}
-                                className="h-3 rounded-full bg-gray-300"
+                                className="h-2 md:h-3 rounded-full bg-gray-300"
                             />
                         </div>
                     </CardHeader>
                 </Card>
 
                 {/* Question Card */}
-                <Card className="shadow-md rounded-2xl p-6">
+                <Card className="shadow-md rounded-2xl p-4 md:p-6 mb-4">
                     <CardContent>
                         <Question
                             question={currentQ}
@@ -128,28 +139,28 @@ export default function QuizPage() {
                 </Card>
 
                 {/* Navigation Buttons */}
-                <div className="flex justify-between mt-6 gap-2">
+                <div className="flex flex-col sm:flex-row justify-between mt-4 gap-2">
                     <button
                         disabled={currentIndex === 0}
                         onClick={prevQuestion}
-                        className={`flex-1 px-4 py-2 rounded-xl flex items-center justify-center gap-2 border 
+                        className={`flex-1 px-3 py-2 rounded-xl flex items-center justify-center gap-2 border 
                           ${currentIndex === 0 ? "bg-gray-200 text-gray-400 cursor-not-allowed" :
                                 "bg-white hover:bg-gray-100 text-gray-700"}`}
                     >
                         <ArrowLeft className="w-4 h-4" /> Previous
                     </button>
 
-                    <div className="flex gap-2 flex-1">
+                    <div className="flex gap-2 flex-1 mt-2 sm:mt-0">
                         <button
                             onClick={() => clearAnswer(currentQ._id)}
-                            className="flex-1 px-4 py-2 rounded-xl bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 flex items-center justify-center gap-2"
+                            className="flex-1 px-3 py-2 rounded-xl bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 flex items-center justify-center gap-2"
                         >
                             <RotateCcw className="w-4 h-4" /> Clear
                         </button>
 
                         <button
                             onClick={nextQuestion}
-                            className="flex-1 px-4 py-2 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 flex items-center justify-center gap-2"
+                            className="flex-1 px-3 py-2 rounded-xl bg-[#339999] text-white hover:bg-[#2B8080] flex items-center justify-center gap-2"
                         >
                             {currentIndex === quiz.questions.length - 1 ? "Finish" : "Next"} <ArrowRight className="w-4 h-4" />
                         </button>
@@ -157,7 +168,7 @@ export default function QuizPage() {
                 </div>
 
                 {/* Question Navigator */}
-                <div className="flex flex-wrap justify-center mt-6 gap-2">
+                <div className="flex flex-wrap justify-center mt-4 gap-2">
                     {quiz.questions.map((q, idx) => {
                         const isAnswered = answers.some(a => a.questionId === q._id)
                         const isCurrent = idx === currentIndex
@@ -168,9 +179,9 @@ export default function QuizPage() {
                                 onClick={() => setCurrentIndex(idx)}
                                 title={`Go to Question ${idx + 1}`}
                                 className={`
-                                    w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-300
-                                    ${isCurrent ? "bg-indigo-600 text-white shadow-md" :
-                                        isAnswered ? "bg-green-400 text-white hover:bg-green-500" :
+                                    w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center text-xs md:text-sm font-medium transition-all duration-300
+                                    ${isCurrent ? "bg-[#267373] text-white hover:bg-[#1F5C5C]"  :
+                                        isAnswered ? "bg-[#339999] text-white hover:bg-[#2B8080]"  :
                                             "bg-gray-200 text-gray-700 hover:bg-gray-300"}
                                 `}
                             >

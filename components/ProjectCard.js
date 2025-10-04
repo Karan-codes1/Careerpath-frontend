@@ -1,6 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Badge } from "./ui/badge";
-import { Button } from "./ui/button";
 import { ExternalLink, Star, Clock, Users } from "lucide-react";
 
 export default function ProjectCard({  
@@ -22,8 +21,8 @@ export default function ProjectCard({
   };
 
   return (
-    <Card className="h-full hover:shadow-lg transition-shadow duration-200">
-      <CardHeader>
+    <Card className="h-full hover:shadow-lg transition-shadow duration-200 p-4 md:p-6">
+      <CardHeader className="p-0">
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">
             <CardTitle className="mb-2 font-semibold">{title}</CardTitle>
@@ -50,10 +49,10 @@ export default function ProjectCard({
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 p-2 md:p-4">
         <div>
           <h4 className="mb-2 text-muted-foreground text-gray-500">Required Skills</h4>
-          <div className="flex flex-wrap gap-2 ">
+          <div className="flex flex-wrap gap-2">
             {requiredSkills.map((skill, index) => (
               <Badge key={index} variant="secondary" className="text-xs border bg-gray-100 border-gray-300 rounded-full px-2 py-0.5">
                 {skill}
@@ -73,15 +72,6 @@ export default function ProjectCard({
             ))}
           </ul>
         </div>
-<div className="pt-2">
-  <button
-    className="w-80 h-8 flex items-center justify-center text-white mb-5 rounded-lg transition-colors"
-    style={{ backgroundColor: "rgb(3 2 19)" }}
-  >
-    <ExternalLink className="w-4 h-4 mr-2" />
-    Start Building
-  </button>
-</div>
 
       </CardContent>
     </Card>

@@ -102,9 +102,9 @@ export default function ViewAllResources() {
         <p className="mt-4 text-gray-500">Loading resources...</p>
       ) : (
         <>
-          <h1 className="text-2xl font-bold text-[rgb(0,128,128)] mt-4 mb-2">
+          <h1 className="text-2xl font-bold text-[#339999] mt-4 mb-2">
             {milestone?.order && (
-             <span className="text-[rgb(0,128,128)] bg-clip-text font-bold">
+             <span className="text-[#339999] bg-clip-text font-bold">
   Milestone {milestone.order}:</span>
 
   // <span>I am a div</span>
@@ -132,7 +132,7 @@ export default function ViewAllResources() {
                       className={`flex items-center gap-2 px-4 py-2 rounded-xl border text-left transition-all
               ${isActive
                           ? "bg-[#0c0c1d] text-white"
-                          : "bg-white border-gray-300 text-gray-800 hover:bg-gray-100"
+                          : " border-gray-300 bg-gray-100 text-gray-800 hover:bg-gray-300"
                         }`}
                     >
                       <Icon
