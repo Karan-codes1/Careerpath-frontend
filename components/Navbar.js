@@ -45,7 +45,7 @@ export default function Navbar() {
                                     className="bg-white text-gray-700 hover:text-[#008080] px-4 py-2 rounded-md text-sm transition duration-150"
                                 >
                                     Logout
-                                </button>
+                                </button> 
                             </>
                         )}
 
