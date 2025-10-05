@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from "react";
+// 1. Import Suspense from react
+import { useState, Suspense } from "react"; 
 import { useSearchParams } from "next/navigation";
 import api from "@/utils/api";
 import ProjectCard from "@/components/ProjectCard";
@@ -12,8 +13,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-export default function RoadmapProjects() {
-  const searchParams = useSearchParams();
+// 2. Rename the component containing the useSearchParams hook
+function ProjectsContent() {
+  const searchParams = useSearchParams(); // Now safely nested
   const roadmapName = searchParams.get("roadmapName") || "";
 
   const [projects, setProjects] = useState([]);
@@ -132,4 +134,13 @@ export default function RoadmapProjects() {
       </div>
     </div>
   );
+}
+
+// 3. Export the wrapper component
+export default function RoadmapProjects() {
+    return (
+        <Suspense fallback={<div>Loading project generator...</div>}>
+            <ProjectsContent />
+        </Suspense>
+    );
 }
