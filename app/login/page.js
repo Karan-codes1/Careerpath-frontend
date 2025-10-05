@@ -1,21 +1,25 @@
 'use client'
-import { useState, useEffect } from "react"
+// 1. Import Suspense along with your other React/Next.js imports
+// The import for useState and useEffect now correctly includes Suspense.
+import { useState, useEffect, Suspense } from "react" 
 import { useRouter } from "next/navigation"
-import { Eye, EyeOff } from 'lucide-react' // ✅ Lucide icons (you can also use other icons)
+import { Eye, EyeOff } from 'lucide-react'
 import Link from "next/link"
 import { useAuth } from '@/context/AuthContext.js'
-import { useSearchParams } from 'next/navigation'; // for pop up
+import { useSearchParams } from 'next/navigation';
 import api from '@/utils/api'
 
-export default function LoginPage() {
+// 2. Rename your original component to contain the client-side logic
+function LoginContent() { 
     const { setIsLoggedIn } = useAuth()
     const router = useRouter();
     const [email, setemail] = useState('')
     const [password, setpassword] = useState('')
     const [error, seterror] = useState('')
     const [showpassword, setshowpassword] = useState(false)
-    // pop up 
-    const searchParams = useSearchParams();
+
+    // The problematic hook is here:
+    const searchParams = useSearchParams(); 
     const [popupMessage, setPopupMessage] = useState('');
     const [showPopup, setShowPopup] = useState(false);
 
@@ -26,7 +30,6 @@ export default function LoginPage() {
             setPopupMessage('Please login or create an account to access the roadmap.');
             setShowPopup(true);
 
-            // Auto-hide popup after 3 seconds
             const timer = setTimeout(() => setShowPopup(false), 3000);
             return () => clearTimeout(timer);
         }
@@ -34,10 +37,10 @@ export default function LoginPage() {
 
 
     const handleLogin = async (e) => {
-        e.preventDefault()// Prevent page refresh
+        e.preventDefault()
 
         try {
-            const res = await api.post('/auth/login', { email, password }); // backend called using axios
+            const res = await api.post('/auth/login', { email, password });
             setIsLoggedIn(true)
             router.push('/')
 
@@ -57,11 +60,10 @@ export default function LoginPage() {
             )}
 
 
-
             <form onSubmit={handleLogin} className="bg-white p-6 rounded shadow-md w-96">
                 <h2 className="text-2xl font-bold mb-4">Login</h2>
 
-                {error && <p className="text-red-500">{error}</p>}  {/* show error if any */}
+                {error && <p className="text-red-500">{error}</p>}
 
                 {/* Email Input */}
                 <input
@@ -101,8 +103,15 @@ export default function LoginPage() {
             </form>
         </div>
     );
-
 }
 
-
-
+// 3. Export the new default wrapper component
+export default function LoginPage() {
+    return (
+        // The Suspense wrapper ensures the component using useSearchParams 
+        // is skipped during server prerendering.
+        <Suspense fallback={<div>Loading...</div>}>
+            <LoginContent />
+        </Suspense>
+    );
+}
