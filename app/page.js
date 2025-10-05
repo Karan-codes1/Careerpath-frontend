@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+// 1. Import Suspense from react
+import { useEffect, useState, useRef, Suspense } from 'react'; 
 import Link from 'next/link';
 import api from '@/utils/api';
 import {
@@ -20,7 +21,7 @@ import {
   BarChart2,
 } from "lucide-react";
 import RoadmapCard from '@/components/RoadmapCard';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation'; // This is the problematic hook
 
 const iconMap = {
   code: Code,
@@ -39,9 +40,11 @@ const iconMap = {
   barchart2: BarChart2,
 };
 
-export default function DashboardPage() {
+// 2. Rename your original default export to a regular function
+function HomeContent() {
+  // All your hooks and logic remain here:
   const roadmapSectionRef = useRef(null);
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams(); // Now safely inside a component that will be suspended
   const [roadmaps, setRoadmaps] = useState([]);
 
   useEffect(() => {
@@ -162,4 +165,13 @@ export default function DashboardPage() {
       </section>
     </>
   );
+}
+
+// 3. Export the new default function that wraps the content in <Suspense>
+export default function DashboardPageWrapper() {
+    return (
+        <Suspense fallback={<div>Loading homepage content...</div>}>
+            <HomeContent />
+        </Suspense>
+    );
 }

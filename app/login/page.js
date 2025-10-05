@@ -105,7 +105,6 @@ function LoginContent() {
     );
 }
 
-// 3. Export the new default wrapper component
 export default function LoginPage() {
     return (
         // The Suspense wrapper ensures the component using useSearchParams 
