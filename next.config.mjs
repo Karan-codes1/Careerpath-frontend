@@ -1,10 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // This block tells Vercel's build process to ignore all ESLint errors, 
-  // which will allow the build to succeed even with the "react/no-unescaped-entities" error.
+  // Keep the ESLint ignore, but ensure the output is set to 'standalone'
   eslint: {
     ignoreDuringBuilds: true,
   },
+  
+  // ADD THIS LINE
+  output: 'standalone', 
 };
 
 export default nextConfig;
