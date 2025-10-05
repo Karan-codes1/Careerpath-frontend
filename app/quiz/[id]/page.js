@@ -166,8 +166,6 @@ export default function QuizPage() {
                         </button>
                     </div>
                 </div>
-
-                {/* Question Navigator */}
                 <div className="flex flex-wrap justify-center mt-4 gap-2">
                     {quiz.questions.map((q, idx) => {
                         const isAnswered = answers.some(a => a.questionId === q._id)
