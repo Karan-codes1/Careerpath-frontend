@@ -1,9 +1,7 @@
 'use client';
 
-// 1. Import Suspense from react
-import { useEffect, useState, useRef, Suspense } from 'react'; 
+import { useEffect, useRef, Suspense } from 'react'; 
 import Link from 'next/link';
-import api from '@/utils/api';
 import {
   Code,
   Palette,
@@ -21,7 +19,8 @@ import {
   BarChart2,
 } from "lucide-react";
 import RoadmapCard from '@/components/RoadmapCard';
-import { useSearchParams } from 'next/navigation'; // This is the problematic hook
+import { useSearchParams } from 'next/navigation';
+import useRoadmapStore from '@/store/useRoadmapStore';
 
 const iconMap = {
   code: Code,
@@ -40,13 +39,12 @@ const iconMap = {
   barchart2: BarChart2,
 };
 
-// 2. Rename your original default export to a regular function
 function HomeContent() {
-  // All your hooks and logic remain here:
   const roadmapSectionRef = useRef(null);
-  const searchParams = useSearchParams(); // Now safely inside a component that will be suspended
-  const [roadmaps, setRoadmaps] = useState([]);
+  const searchParams = useSearchParams();
+  const { roadmaps, loading, fetchRoadmaps } = useRoadmapStore();
 
+  // Scroll to roadmap section if query message exists
   useEffect(() => {
     const message = searchParams.get("message");
     if (message === "GetToRoadmaps" && roadmapSectionRef.current) {
@@ -54,18 +52,10 @@ function HomeContent() {
     }
   }, [searchParams]);
 
+  // Fetch roadmaps once
   useEffect(() => {
-    const fetchRoadmaps = async () => {
-      try {
-        const res = await api.get('/roadmap');
-        setRoadmaps(res.data.allroadmaps);
-      } catch (error) {
-        console.error('Error fetching roadmaps:', error);
-      }
-    };
-
     fetchRoadmaps();
-  }, []);
+  }, [fetchRoadmaps]);
 
   return (
     <>
@@ -106,7 +96,6 @@ function HomeContent() {
       {/* ROADMAPS SECTION */}
       <div className="bg-[#f4f7fa]">
         <div className="flex flex-col items-center px-4 py-4 md:py-6">
-          {/* Heading */}
           <section className="text-center py-3 md:py-5 px-4 md:px-6 lg:px-8">
             <h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold text-gray-900">
               Choose Your Career Path
@@ -121,7 +110,19 @@ function HomeContent() {
 
           {/* Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 max-w-6xl w-full mt-2 md:mt-3">
-            {roadmaps.length > 0 ? (
+            {loading ? (
+              // Skeleton Loader
+              Array.from({ length: 6 }).map((_, idx) => (
+                <div
+                  key={idx}
+                  className="border border-gray-200 rounded-md p-4 animate-pulse bg-white"
+                >
+                  <div className="h-6 w-6 bg-gray-300 rounded mb-3"></div>
+                  <div className="h-4 bg-gray-300 rounded w-3/4 mb-2"></div>
+                  <div className="h-3 bg-gray-300 rounded w-1/2"></div>
+                </div>
+              ))
+            ) : roadmaps.length > 0 ? (
               roadmaps.map((roadmap) => {
                 const IconComponent = iconMap[roadmap.icon?.toLowerCase()] || Code;
                 return (
@@ -167,11 +168,10 @@ function HomeContent() {
   );
 }
 
-// 3. Export the new default function that wraps the content in <Suspense>
 export default function DashboardPageWrapper() {
-    return (
-        <Suspense fallback={<div>Loading homepage content...</div>}>
-            <HomeContent />
-        </Suspense>
-    );
+  return (
+    <Suspense fallback={<div>Loading homepage content...</div>}>
+      <HomeContent />
+    </Suspense>
+  );
 }

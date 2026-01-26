@@ -1,116 +1,98 @@
-'use client'
-// 1. Import Suspense along with your other React/Next.js imports
-// The import for useState and useEffect now correctly includes Suspense.
-import { useState, useEffect, Suspense } from "react" 
-import { useRouter } from "next/navigation"
-import { Eye, EyeOff } from 'lucide-react'
-import Link from "next/link"
-import { useAuth } from '@/context/AuthContext.js'
-import { useSearchParams } from 'next/navigation';
-import api from '@/utils/api'
+'use client';
 
-// 2. Rename your original component to contain the client-side logic
-function LoginContent() { 
-    const { setIsLoggedIn } = useAuth()
-    const router = useRouter();
-    const [email, setemail] = useState('')
-    const [password, setpassword] = useState('')
-    const [error, seterror] = useState('')
-    const [showpassword, setshowpassword] = useState(false)
+import { useState, Suspense } from "react";
+import { signIn } from "next-auth/react";
+import { Eye, EyeOff } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
-    // The problematic hook is here:
-    const searchParams = useSearchParams(); 
-    const [popupMessage, setPopupMessage] = useState('');
-    const [showPopup, setShowPopup] = useState(false);
+function LoginContent() {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
 
-    useEffect(() => {
-        const message = searchParams.get('message');
-        if (message === 'login_required') {
-            setPopupMessage('Please login or create an account to access the roadmap.');
-            setShowPopup(true);
+    const res = await signIn("credentials", {
+      email,
+      password,
+      redirect: false,
+    });
 
-            const timer = setTimeout(() => setShowPopup(false), 3000);
-            return () => clearTimeout(timer);
-        }
-    }, [searchParams]);
+    if (res?.error) {
+      setError("Invalid email or password");
+    } else {
+      router.push("/");
+    }
 
+    setLoading(false);
+  };
 
-    const handleLogin = async (e) => {
-        e.preventDefault()
+  return (
+    <div className="my-14 flex justify-center">
+      <form onSubmit={handleLogin} className="bg-white p-6 w-96 rounded shadow">
+        <h2 className="text-2xl font-bold mb-4">Login</h2>
 
-        try {
-            const res = await api.post('/auth/login', { email, password });
-            setIsLoggedIn(true)
-            router.push('/')
+        {error && <p className="text-red-500">{error}</p>}
 
-        } catch (error) {
-            console.error('Login failed:', error);
-            seterror(error?.response?.data?.message || 'Login failed');
-        }
-    };
+        <input
+          type="email"
+          placeholder="Email"
+          className="w-full mb-3 p-2 border rounded"
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
 
-    return (
-        <div className=" my-14 overflow-hidden flex items-center justify-center">
-
-            {showPopup && (
-                <div className="my-10 absolute top-6 left-1/2 transform -translate-x-1/2 bg-yellow-100 border border-yellow-400 text-yellow-800 px-4 py-2 rounded shadow z-50 transition-all">
-                    {popupMessage}
-                </div>
-            )}
-
-
-            <form onSubmit={handleLogin} className="bg-white p-6 rounded shadow-md w-96">
-                <h2 className="text-2xl font-bold mb-4">Login</h2>
-
-                {error && <p className="text-red-500">{error}</p>}
-
-                {/* Email Input */}
-                <input
-                    type="email"
-                    placeholder="Email"
-                    value={email}
-                    onChange={(e) => setemail(e.target.value)}
-                    className="w-full mb-3 p-2 border rounded"
-                    required
-                />
-
-                {/* Password Input */}
-                <div className="relative mb-3">
-                    <input
-                        type={showpassword ? "text" : "password"}
-                        placeholder="Password"
-                        value={password}
-                        onChange={(e) => setpassword(e.target.value)}
-                        className="w-full p-2 border rounded pr-10"
-                        required
-                    />
-                    <span
-                        onClick={() => setshowpassword(!showpassword)}
-                        className="absolute top-2 right-3 cursor-pointer text-gray-600"
-                    >
-                        {showpassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                    </span>
-                </div>
-
-                {/* Login Button */}
-                <button type="submit" className="w-full bg-[#008080] text-white p-2 rounded hover:bg-[#006666]">
-                    Login
-                </button>
-                <p className="text-sm mt-3">
-                    Don’t have an account? <Link href="/signup" className="text-blue-600 underline">Sign up</Link>
-                </p>
-            </form>
+        <div className="relative mb-3">
+          <input
+            type={showPassword ? "text" : "password"}
+            placeholder="Password"
+            className="w-full p-2 border rounded pr-10"
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          <span
+            className="absolute top-2 right-3 cursor-pointer"
+            onClick={() => setShowPassword(!showPassword)}
+          >
+            {showPassword ? <EyeOff /> : <Eye />}
+          </span>
         </div>
-    );
+
+        <button
+          disabled={loading}
+          className="w-full bg-[#008080] text-white p-2 rounded"
+        >
+          {loading ? "Logging in..." : "Login"}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => signIn("google", { callbackUrl: "/" })}
+          className="w-full mt-4 bg-red-500 text-white p-2 rounded"
+        >
+          Login with Google
+        </button>
+
+        <p className="mt-3 text-sm">
+          No account?{" "}
+          <Link href="/signup" className="underline">Signup</Link>
+        </p>
+      </form>
+    </div>
+  );
 }
 
 export default function LoginPage() {
-    return (
-        // The Suspense wrapper ensures the component using useSearchParams 
-        // is skipped during server prerendering.
-        <Suspense fallback={<div>Loading...</div>}>
-            <LoginContent />
-        </Suspense>
-    );
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LoginContent />
+    </Suspense>
+  );
 }

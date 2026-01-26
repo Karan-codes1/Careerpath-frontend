@@ -1,3 +1,5 @@
+'use client';
+
 import {
   Card,
   CardContent,
@@ -6,12 +8,9 @@ import {
   CardTitle,
 } from "./ui/card";
 import { Badge } from "./ui/badge";
-import { Button } from "./ui/button";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import { useAuth } from "@/context/AuthContext";
-import { Clock, Users, ArrowRight, Link as LinkIcon } from "lucide-react"; // import Link from "next/link";
-import Router from "next/router";
+import { useSession } from "next-auth/react";
+import { Clock, Users, ArrowRight } from "lucide-react";
 
 export default function RoadmapCard({
   _id,
@@ -23,9 +22,9 @@ export default function RoadmapCard({
   learners,
   skills,
 }) {
+  const router = useRouter();
+  const { data: session, status } = useSession();
 
-  const router = useRouter(); // ✅ initialize router
- 
   const getDifficultyColor = (level) => {
     if (typeof level !== "string") return "bg-gray-100 text-gray-800";
     switch (level.toLowerCase()) {
@@ -40,6 +39,14 @@ export default function RoadmapCard({
     }
   };
 
+  const handleStartLearning = () => {
+    if (status === "unauthenticated") {
+      router.push("/login?message=login_required");
+    } else {
+      router.push(`/roadmap/${_id}`);
+    }
+  };
+
   return (
     <Card className="h-full flex flex-col hover:shadow-lg transition-shadow duration-200 group">
       <CardHeader className="pb-3">
@@ -51,15 +58,16 @@ export default function RoadmapCard({
             {difficulty || "Unknown"}
           </Badge>
         </div>
+
         <CardTitle className="mt-2 text-lg group-hover:text-primary transition-colors">
           {title || "Untitled"}
         </CardTitle>
+
         <CardDescription className="text-sm line-clamp-2">
           {description || "No description available."}
         </CardDescription>
       </CardHeader>
 
-      {/* ✅ Make CardContent grow and stretch */}
       <CardContent className="flex flex-col justify-between flex-grow px-4 pb-4">
         <div>
           <div className="flex items-center justify-between text-sm text-muted-foreground mb-2">
@@ -94,16 +102,14 @@ export default function RoadmapCard({
           </div>
         </div>
 
-        
-          <button onClick={()=>{router.push(`/roadmap/${_id}`)}}
-            className=" max-h-1 w-full flex items-center justify-center gap-2 text-white px-3 pb-5 rounded-md text-sm hover:bg-blue-700 transition-all"
-            style={{ backgroundColor: "#030213" }}
-          >
-            Start Learning
-            <ArrowRight className="w-4 h-4" />
-          </button>
-
-     
+        <button
+          onClick={handleStartLearning}
+          className="w-full flex items-center justify-center gap-2 text-white px-3 py-2 rounded-md text-sm transition-all"
+          style={{ backgroundColor: "#030213" }}
+        >
+          Start Learning
+          <ArrowRight className="w-4 h-4" />
+        </button>
       </CardContent>
     </Card>
   );
