@@ -8,7 +8,7 @@ import { Progress } from '@/components/ui/progress'
 
 // --- Status Icon ---
 export function StatusIcon({ status, onClick }) {
-  const baseClasses = "w-4 h-4 sm:w-5 sm:h-5" 
+  const baseClasses = "w-4 h-4 sm:w-5 sm:h-5"
   const isClickable = typeof onClick === 'function'
   const iconProps = {
     className: `${baseClasses} ${isClickable ? 'cursor-pointer' : ''}`,
@@ -42,10 +42,10 @@ export function StatusBadge({ status }) {
     status === 'in_progress'
       ? 'In Progress'
       : status === 'not_started'
-      ? 'Start Now'
-      : typeof status === 'string'
-      ? status.charAt(0).toUpperCase() + status.slice(1)
-      : 'Unknown'
+        ? 'Start Now'
+        : typeof status === 'string'
+          ? status.charAt(0).toUpperCase() + status.slice(1)
+          : 'Unknown'
 
   return (
     <Badge
@@ -62,12 +62,11 @@ export function StatusBadge({ status }) {
 }
 
 // --- Milestone Card ---
-export default function MilestoneCard({ milestone, index, onComplete, onDelete, onOpen }) {
+export default function MilestoneCard({ milestone, index, onComplete, onOpen }) {
   return (
     <Card
-      className={`transition-all duration-200 hover:shadow-md ${
-        milestone.status === 'locked' ? 'opacity-60' : 'cursor-pointer'
-      } p-2 sm:p-3 md:p-3`}
+      className={`transition-all duration-200 hover:shadow-md ${milestone.status === 'locked' ? 'opacity-60' : 'cursor-pointer'
+        } p-2 sm:p-3 md:p-3`}
       onClick={() => {
         if (milestone.status !== 'locked') {
           onOpen(milestone._id)
@@ -77,18 +76,15 @@ export default function MilestoneCard({ milestone, index, onComplete, onDelete, 
       <CardHeader className="p-0">
         {/* ✅ Changed layout: inline on phone, stacked on larger screens */}
         <div className="flex flex-row sm:flex-row sm:items-start gap-2 sm:gap-3">
-          
+
           {/* Status Icon */}
           <div className="flex-shrink-0 flex items-center">
             <StatusIcon
               status={milestone.status}
               onClick={(e) => {
                 e.stopPropagation()
-                if (milestone.status === 'completed') {
-                  onDelete(milestone._id)
-                } else if (milestone.status !== 'locked') {
-                  onComplete(milestone._id)
-                }
+                if (milestone.status === 'locked') return
+                onComplete()
               }}
             />
           </div>

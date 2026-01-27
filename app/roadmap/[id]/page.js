@@ -135,10 +135,11 @@ export default function RoadmapDetailPage() {
   // ✅ Milestone list
   const milestoneList = useMemo(
     () =>
-      milestones.map((milestone) => (
+      milestones.map((milestone,index) => (
         <MilestoneCard
           key={milestone._id}
           milestone={milestone}
+          index = {index}
           onComplete={() => handleMilestoneComplete(milestone._id)}
         />
       )),
