@@ -1,4 +1,5 @@
 'use client'
+
 import { useEffect, useState, useMemo } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
@@ -14,7 +15,9 @@ import { Progress } from '@/components/ui/progress'
 
 // ✅ Lazy load milestone cards
 const MilestoneCard = dynamic(() => import('@/components/MilestoneCard'), {
-  loading: () => <div className="h-24 w-full bg-gray-100 rounded-lg animate-pulse" />,
+  loading: () => (
+    <div className="h-24 w-full bg-gray-100 rounded-lg animate-pulse" />
+  ),
   ssr: false,
 })
 
@@ -23,7 +26,6 @@ export default function RoadmapDetailPage() {
   const router = useRouter()
 
   const { data: session, status } = useSession()
-  const isLoggedIn = status === 'authenticated'
 
   // ✅ Zustand store
   const { roadmapData, fetchRoadmapDetails } = RoadmapDetailsStore()
@@ -43,8 +45,11 @@ export default function RoadmapDetailPage() {
     }
   }, [status, router])
 
-  // ✅ Fetch roadmap + milestones
+  // ✅ Fetch roadmap ONLY after session is authenticated
   useEffect(() => {
+    if (!id) return
+    if (status !== 'authenticated') return
+
     const loadData = async () => {
       if (cached) {
         setRoadmap(cached.roadmap)
@@ -60,19 +65,19 @@ export default function RoadmapDetailPage() {
       await fetchRoadmapDetails(id)
     }
 
-    if (id && isLoggedIn) loadData()
-  }, [id, isLoggedIn, cached, fetchRoadmapDetails])
+    loadData()
+  }, [id, status, cached, fetchRoadmapDetails])
 
-  // Sync store updates
+  // ✅ Sync Zustand cache → local state
   useEffect(() => {
-    if (cached) {
-      setRoadmap(cached.roadmap)
-      setMilestones(cached.milestones)
-      setProgress(cached.progress?.progressPercentage || 0)
-      setRemainingMilestones(cached.progress?.remainingMilestones || 0)
-      setCompletedMilestones(cached.progress?.completedMilestones || 0)
-      setMilestonesLoading(false)
-    }
+    if (!cached) return
+
+    setRoadmap(cached.roadmap)
+    setMilestones(cached.milestones)
+    setProgress(cached.progress?.progressPercentage || 0)
+    setRemainingMilestones(cached.progress?.remainingMilestones || 0)
+    setCompletedMilestones(cached.progress?.completedMilestones || 0)
+    setMilestonesLoading(false)
   }, [cached])
 
   const handleGetProjectIdeas = () => {
@@ -112,6 +117,7 @@ export default function RoadmapDetailPage() {
     })
   }
 
+  // ✅ Skill badges
   const skillBadges = useMemo(
     () =>
       roadmap?.skills?.map((tag, index) => (
@@ -122,11 +128,25 @@ export default function RoadmapDetailPage() {
         >
           {tag}
         </Badge>
-      )),
+      )) || [],
     [roadmap?.skills]
   )
 
-  if (status === 'loading' || !isLoggedIn) return null
+  // ✅ Milestone list
+  const milestoneList = useMemo(
+    () =>
+      milestones.map((milestone) => (
+        <MilestoneCard
+          key={milestone._id}
+          milestone={milestone}
+          onComplete={() => handleMilestoneComplete(milestone._id)}
+        />
+      )),
+    [milestones]
+  )
+
+  if (status === 'loading') return null
+  if (status !== 'authenticated') return null
 
   return (
     <div className="min-h-screen bg-gray-50">

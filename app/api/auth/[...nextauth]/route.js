@@ -1,37 +1,71 @@
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
+import bcrypt from "bcryptjs";
 
 import User from "@/models/User";
 import dbConnect from "@/lib/dbConnect";
 
 const handler = NextAuth({
   providers: [
+    // 🔹 GOOGLE LOGIN
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     }),
 
+    // 🔹 EMAIL + PASSWORD LOGIN
     CredentialsProvider({
-      async authorize(credentials) {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(credentials),
-        });
+      name: "Credentials",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
 
-        if (!res.ok) return null;
-        return await res.json();
+      async authorize(credentials) {
+        await dbConnect();
+
+        if (!credentials?.email || !credentials?.password) {
+          throw new Error("Missing credentials");
+        }
+
+        const user = await User.findOne({ email: credentials.email });
+
+        if (!user) {
+          throw new Error("No user found");
+        }
+
+        // Google user trying password login
+        if (!user.password) {
+          throw new Error("Use Google login for this account");
+        }
+
+        const isValid = await bcrypt.compare(
+          credentials.password,
+          user.password
+        );
+
+        if (!isValid) {
+          throw new Error("Invalid email or password");
+        }
+
+        // ✅ MUST return plain object
+        return {
+          id: user._id.toString(),
+          name: user.name,
+          email: user.email,
+        };
       },
     }),
   ],
 
+  // 🔹 JWT SESSION
   session: {
     strategy: "jwt",
   },
 
   callbacks: {
-    // ✅ CREATE GOOGLE USER IN DB HERE
+    // 🔹 CREATE USER ON GOOGLE LOGIN
     async signIn({ user, account }) {
       if (account?.provider === "google") {
         await dbConnect();
@@ -42,13 +76,14 @@ const handler = NextAuth({
           await User.create({
             name: user.name,
             email: user.email,
-            password: null, // google account
+            password: null,
           });
         }
       }
       return true;
     },
 
+    // 🔹 ATTACH DATA TO JWT
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
@@ -58,6 +93,7 @@ const handler = NextAuth({
       return token;
     },
 
+    // 🔹 EXPOSE TO CLIENT
     async session({ session, token }) {
       session.user.id = token.id;
       session.user.email = token.email;
