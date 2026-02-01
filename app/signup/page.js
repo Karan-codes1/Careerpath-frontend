@@ -41,24 +41,27 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="my-14 flex justify-center">
-      <form onSubmit={handleSignup} className="bg-white p-6 w-96 rounded shadow">
-        <h2 className="text-2xl font-bold mb-4">Signup</h2>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100">
+      <form
+        onSubmit={handleSignup}
+        className="bg-white p-6 w-96 rounded-xl shadow-md mb-20"
+      >
+        <h2 className="text-2xl font-bold mb-4 text-center">Sign up</h2>
 
-        {error && <p className="text-red-500">{error}</p>}
+        {error && <p className="text-red-500 mb-3 text-sm">{error}</p>}
 
         <input
           placeholder="Name"
           onChange={(e) => setName(e.target.value)}
           required
-          className="w-full mb-3 p-2 border"
+          className="w-full mb-3 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
         />
 
         <input
           placeholder="Email"
           onChange={(e) => setEmail(e.target.value)}
           required
-          className="w-full mb-3 p-2 border"
+          className="w-full mb-3 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
         />
 
         <input
@@ -66,29 +69,43 @@ export default function SignupPage() {
           type="password"
           onChange={(e) => setPassword(e.target.value)}
           required
-          className="w-full mb-3 p-2 border"
+          className="w-full mb-3 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
         />
 
         <button
           disabled={loading}
-          className="w-full bg-[#008080] text-white p-2 rounded"
+          className="w-full bg-[#008080] text-white p-2 rounded hover:opacity-90 transition"
         >
           {loading ? "Signing up..." : "Sign Up"}
         </button>
 
+        <div className="flex items-center my-4">
+          <div className="flex-grow h-px bg-gray-300"></div>
+          <span className="mx-3 text-sm text-gray-500">or</span>
+          <div className="flex-grow h-px bg-gray-300"></div>
+        </div>
+
         <button
           type="button"
           onClick={() => signIn("google", { callbackUrl: "/" })}
-          className="w-full mt-4 bg-red-500 text-white p-2 rounded"
+          className="w-full flex items-center justify-center gap-3 border border-gray-300 bg-white text-gray-700 p-2 rounded hover:bg-gray-50 transition"
         >
-          Signup with Google
+          <img
+            src="https://www.svgrepo.com/show/475656/google-color.svg"
+            alt="Google"
+            className="w-5 h-5"
+          />
+          <span className="font-medium">Sign up with Google</span>
         </button>
 
-        <p className="mt-3 text-sm">
+        <p className="mt-4 text-sm text-center">
           Already have an account?{" "}
-          <Link href="/login" className="underline">Login</Link>
+          <Link href="/login" className="text-blue-600 underline">
+            Login
+          </Link>
         </p>
       </form>
     </div>
   );
+
 }

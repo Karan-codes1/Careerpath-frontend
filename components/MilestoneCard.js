@@ -2,20 +2,34 @@
 
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Clock } from 'lucide-react'
-import { CheckCircle, Circle, Lock } from 'lucide-react'
+import { Clock, CheckCircle, Circle, Lock } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { Progress } from '@/components/ui/progress'
 
-// --- Status Icon ---
+/* ---------------------------------------------------
+   🔒 Normalize status so UI NEVER sees invalid states
+--------------------------------------------------- */
+const normalizeStatus = (status) => {
+  if (!status) return 'not_started'
+  if (status === 'pending') return 'not_started'
+  if (status === 'not started') return 'not_started'
+  return status
+}
+
+/* ---------------------------------------------------
+   Status Icon
+--------------------------------------------------- */
 export function StatusIcon({ status, onClick }) {
-  const baseClasses = "w-4 h-4 sm:w-5 sm:h-5"
+  const safeStatus = normalizeStatus(status)
+  const baseClasses = 'w-4 h-4 sm:w-5 sm:h-5'
   const isClickable = typeof onClick === 'function'
+
   const iconProps = {
     className: `${baseClasses} ${isClickable ? 'cursor-pointer' : ''}`,
     onClick,
   }
 
-  switch (status) {
+  switch (safeStatus) {
     case 'completed':
       return <CheckCircle {...iconProps} className={`${baseClasses} text-green-500`} />
     case 'in_progress':
@@ -29,8 +43,12 @@ export function StatusIcon({ status, onClick }) {
   }
 }
 
-// --- Status Badge ---
+/* ---------------------------------------------------
+   Status Badge
+--------------------------------------------------- */
 export function StatusBadge({ status }) {
+  const safeStatus = normalizeStatus(status)
+
   const variants = {
     completed: 'bg-green-100 text-green-700',
     in_progress: 'bg-blue-100 text-blue-700',
@@ -39,18 +57,16 @@ export function StatusBadge({ status }) {
   }
 
   const formattedStatus =
-    status === 'in_progress'
+    safeStatus === 'in_progress'
       ? 'In Progress'
-      : status === 'not_started'
+      : safeStatus === 'not_started'
         ? 'Start Now'
-        : typeof status === 'string'
-          ? status.charAt(0).toUpperCase() + status.slice(1)
-          : 'Unknown'
+        : safeStatus.charAt(0).toUpperCase() + safeStatus.slice(1)
 
   return (
     <Badge
       className={`
-        ${variants[status]}
+        ${variants[safeStatus]}
         text-[9px] sm:text-[10px] md:text-xs
         py-0.5 px-1 sm:py-0.5 sm:px-1.5 md:py-1 md:px-2
         rounded-md
@@ -61,29 +77,41 @@ export function StatusBadge({ status }) {
   )
 }
 
-// --- Milestone Card ---
+/* ---------------------------------------------------
+   Milestone Card
+--------------------------------------------------- */
 export default function MilestoneCard({ milestone, index, onComplete, onOpen }) {
+  const safeStatus = normalizeStatus(milestone.status)
+  const router = useRouter()
+
+
+  const handleNavigate = () => {
+    if (safeStatus === 'locked') return
+    router.push(`/resource/milestone/${milestone._id}`)
+  }
+
+
   return (
+    <div onClick={handleNavigate} className="cursor-pointer">
     <Card
-      className={`transition-all duration-200 hover:shadow-md ${milestone.status === 'locked' ? 'opacity-60' : 'cursor-pointer'
+      className={`transition-all duration-200 hover:shadow-md ${safeStatus === 'locked' ? 'opacity-60' : 'cursor-pointer'
         } p-2 sm:p-3 md:p-3`}
-      onClick={() => {
-        if (milestone.status !== 'locked') {
-          onOpen(milestone._id)
-        }
-      }}
+      // onClick={() => {
+      //   if (safeStatus !== 'locked' && onOpen) {
+      //     router.push(`/resource/milestone/${milestone._id}`)
+      //   }
+      // }}
     >
       <CardHeader className="p-0">
-        {/* ✅ Changed layout: inline on phone, stacked on larger screens */}
-        <div className="flex flex-row sm:flex-row sm:items-start gap-2 sm:gap-3">
+        <div className="flex flex-row sm:items-start gap-2 sm:gap-3">
 
           {/* Status Icon */}
           <div className="flex-shrink-0 flex items-center">
             <StatusIcon
-              status={milestone.status}
+              status={safeStatus}
               onClick={(e) => {
                 e.stopPropagation()
-                if (milestone.status === 'locked') return
+                if (safeStatus === 'locked') return
                 onComplete()
               }}
             />
@@ -93,7 +121,6 @@ export default function MilestoneCard({ milestone, index, onComplete, onOpen }) 
           <div className="flex-1 min-w-0">
             <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-1 sm:mb-2">
               <div>
-                {/* Title aligned with icon */}
                 <CardTitle className="text-sm sm:text-base md:text-base mb-0.5">
                   {index + 1}. {milestone.title}
                 </CardTitle>
@@ -102,7 +129,7 @@ export default function MilestoneCard({ milestone, index, onComplete, onOpen }) 
                 </CardDescription>
               </div>
               <div className="mt-1 sm:mt-0">
-                <StatusBadge status={milestone.status} />
+                <StatusBadge status={safeStatus} />
               </div>
             </div>
 
@@ -115,7 +142,7 @@ export default function MilestoneCard({ milestone, index, onComplete, onOpen }) 
             </div>
 
             {/* Progress */}
-            {milestone.status === 'in_progress' && milestone.progress && (
+            {safeStatus === 'in_progress' && milestone.progress != null && (
               <div className="mt-1 sm:mt-2">
                 <div className="flex justify-between mb-1 text-xs sm:text-sm">
                   <span>Progress</span>
@@ -128,5 +155,6 @@ export default function MilestoneCard({ milestone, index, onComplete, onOpen }) 
         </div>
       </CardHeader>
     </Card>
+    </div>
   )
 }

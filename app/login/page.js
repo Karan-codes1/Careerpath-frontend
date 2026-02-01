@@ -35,16 +35,19 @@ function LoginContent() {
   };
 
   return (
-    <div className="my-14 flex justify-center">
-      <form onSubmit={handleLogin} className="bg-white p-6 w-96 rounded shadow">
-        <h2 className="text-2xl font-bold mb-4">Login</h2>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100">
+      <form
+        onSubmit={handleLogin}
+        className="bg-white p-9 w-96 rounded-2xl shadow-lg mb-20 "
+      >
+        <h2 className="text-2xl font-bold mb-4 text-center">Login</h2>
 
-        {error && <p className="text-red-500">{error}</p>}
+        {error && <p className="text-red-500 mb-3 text-sm">{error}</p>}
 
         <input
           type="email"
           placeholder="Email"
-          className="w-full mb-3 p-2 border rounded"
+          className="w-full mb-3 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
           onChange={(e) => setEmail(e.target.value)}
           required
         />
@@ -53,40 +56,54 @@ function LoginContent() {
           <input
             type={showPassword ? "text" : "password"}
             placeholder="Password"
-            className="w-full p-2 border rounded pr-10"
+            className="w-full p-2 border rounded pr-10 focus:outline-none focus:ring-2 focus:ring-teal-500"
             onChange={(e) => setPassword(e.target.value)}
             required
           />
           <span
-            className="absolute top-2 right-3 cursor-pointer"
+            className="absolute top-2.5 right-3 cursor-pointer text-gray-500"
             onClick={() => setShowPassword(!showPassword)}
           >
-            {showPassword ? <EyeOff /> : <Eye />}
+            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
           </span>
         </div>
 
         <button
           disabled={loading}
-          className="w-full bg-[#008080] text-white p-2 rounded"
+          className="w-full bg-[#008080] text-white p-2 rounded hover:opacity-90 transition"
         >
           {loading ? "Logging in..." : "Login"}
         </button>
 
+        <div className="flex items-center my-5">
+          <div className="flex-grow h-px bg-gray-300"></div>
+          <span className="mx-3 text-sm text-gray-500">or</span>
+          <div className="flex-grow h-px bg-gray-300"></div>
+        </div>
+
         <button
           type="button"
           onClick={() => signIn("google", { callbackUrl: "/" })}
-          className="w-full mt-4 bg-red-500 text-white p-2 rounded"
+          className="w-full flex items-center justify-center gap-3 border border-gray-300 bg-white text-gray-700 p-2 rounded hover:bg-gray-50 transition"
         >
-          Login with Google
+          <img
+            src="https://www.svgrepo.com/show/475656/google-color.svg"
+            alt="Google"
+            className="w-5 h-5"
+          />
+          <span className="font-medium">Sign in with Google</span>
         </button>
 
-        <p className="mt-3 text-sm">
-          No account?{" "}
-          <Link href="/signup" className="underline">Signup</Link>
+        <p className="mt-5 text-sm text-center">
+          Don&apos;t have an account?{" "}
+          <Link href="/signup" className="text-blue-600 underline">
+            Sign up
+          </Link>
         </p>
       </form>
     </div>
   );
+
 }
 
 export default function LoginPage() {
