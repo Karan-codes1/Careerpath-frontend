@@ -7,7 +7,12 @@ const config = {
   ],
   
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        sans: ["var(--font-sans)"],
+        mono: ["var(--font-mono)"],
+      },
+    },
   },
   plugins: [],
 }
