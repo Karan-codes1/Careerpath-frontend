@@ -38,35 +38,24 @@ export default function RoadmapDetailPage() {
   const [completedMilestones, setCompletedMilestones] = useState(cached?.progress?.completedMilestones || 0)
   const [milestonesLoading, setMilestonesLoading] = useState(!cached)
 
-  // 🔐 Redirect if not logged in
+  // 1️⃣ Redirect unauthenticated users
   useEffect(() => {
     if (status === 'unauthenticated') {
-      router.push('/login?message=login_required')
+      router.replace('/login')
     }
   }, [status, router])
 
-  // ✅ Fetch roadmap ONLY after session is authenticated
+  // 2️⃣ Fetch data only if authenticated
   useEffect(() => {
-    if (!id) return
-    if (status !== 'authenticated') return
+    if (!id || status !== 'authenticated') return
 
-    const loadData = async () => {
-      if (cached) {
-        setRoadmap(cached.roadmap)
-        setMilestones(cached.milestones)
-        setProgress(cached.progress?.progressPercentage || 0)
-        setRemainingMilestones(cached.progress?.remainingMilestones || 0)
-        setCompletedMilestones(cached.progress?.completedMilestones || 0)
-        setMilestonesLoading(false)
-        return
-      }
+    setMilestonesLoading(true)
+    fetchRoadmapDetails(id)
+  }, [id, status, fetchRoadmapDetails])
 
-      setMilestonesLoading(true)
-      await fetchRoadmapDetails(id)
-    }
+  // 3️⃣ Block render while checking auth
+  if (status === 'loading') return null
 
-    loadData()
-  }, [id, status, cached, fetchRoadmapDetails])
 
   // ✅ Sync Zustand cache → local state
   useEffect(() => {
@@ -86,21 +75,35 @@ export default function RoadmapDetailPage() {
   }
 
   const handleMilestoneComplete = async (milestoneId) => {
-    const updatedMilestones = milestones.map((m) =>
-      m._id === milestoneId
-        ? { ...m, status: m.status === 'completed' ? 'pending' : 'completed' }
-        : m
-    )
+    const updatedMilestones = milestones.map((m) => {
+      if (m._id !== milestoneId) return m
+      if (m.status === 'locked') return m
+
+      const newStatus =
+        m.status === 'completed' ? 'not_started' : 'completed'
+
+      return {
+        ...m,
+        status: newStatus,
+        progress: newStatus === 'completed' ? 100 : 0,
+      }
+    })
 
     const total = updatedMilestones.length
-    const completed = updatedMilestones.filter((m) => m.status === 'completed').length
-    const newProgress = total === 0 ? 0 : Math.round((completed / total) * 100)
+    const completed = updatedMilestones.filter(
+      (m) => m.status === 'completed'
+    ).length
 
+    const newProgress =
+      total === 0 ? 0 : Math.round((completed / total) * 100)
+
+    // ✅ Update UI (optimistic)
     setMilestones(updatedMilestones)
     setProgress(newProgress)
     setCompletedMilestones(completed)
     setRemainingMilestones(total - completed)
 
+    // ✅ Update Zustand cache
     RoadmapDetailsStore.getState().setRoadmapData(id, {
       roadmap,
       milestones: updatedMilestones,
@@ -111,9 +114,14 @@ export default function RoadmapDetailPage() {
       },
     })
 
+    // ✅ Persist per-user progress
+    const updatedStatus = updatedMilestones.find(
+      (m) => m._id === milestoneId
+    )?.status
+
     await api.put(`/roadmap/${id}`, {
       milestoneId,
-      status: updatedMilestones.find((m) => m._id === milestoneId).status,
+      status: updatedStatus,
     })
   }
 
@@ -135,11 +143,11 @@ export default function RoadmapDetailPage() {
   // ✅ Milestone list
   const milestoneList = useMemo(
     () =>
-      milestones.map((milestone,index) => (
+      milestones.map((milestone, index) => (
         <MilestoneCard
           key={milestone._id}
           milestone={milestone}
-          index = {index}
+          index={index}
           onComplete={() => handleMilestoneComplete(milestone._id)}
         />
       )),
@@ -243,35 +251,35 @@ export default function RoadmapDetailPage() {
       </div>
 
       {/* Milestones Section */}
-<div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
-  <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-8">
-    <h2 className="text-xl sm:text-2xl font-semibold">Milestones</h2>
-    <Badge variant="outline" className="text-xs sm:text-sm">
-      {milestonesLoading ? 'Loading...' : `${milestones.length} steps`}
-    </Badge>
-  </div>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
+        <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-8">
+          <h2 className="text-xl sm:text-2xl font-semibold">Milestones</h2>
+          <Badge variant="outline" className="text-xs sm:text-sm">
+            {milestonesLoading ? 'Loading...' : `${milestones.length} steps`}
+          </Badge>
+        </div>
 
-  {/* Conditional Rendering Logic */}
-  {milestonesLoading ? (
-    // ✅ Show skeletons when loading
-    <div className="space-y-4 sm:space-y-6">
-      {Array.from({ length: 4 }).map((_, idx) => (
-        <div
-          key={idx}
-          className="h-24 sm:h-28 w-full bg-gray-200 rounded-lg animate-pulse"
-        />
-      ))}
-    </div>
-  ) : milestones && milestones.length > 0 ? (
-    // ✅ Show milestones once loaded
-    <div className="space-y-4 sm:space-y-6">{milestoneList}</div>
-  ) : (
-    // ✅ Show empty state only when loading has finished
-    <div className="text-gray-500 text-sm sm:text-base">
-      No milestones available for this roadmap yet.
-    </div>
-  )}
-</div>
+        {/* Conditional Rendering Logic */}
+        {milestonesLoading ? (
+          // ✅ Show skeletons when loading
+          <div className="space-y-4 sm:space-y-6">
+            {Array.from({ length: 4 }).map((_, idx) => (
+              <div
+                key={idx}
+                className="h-24 sm:h-28 w-full bg-gray-200 rounded-lg animate-pulse"
+              />
+            ))}
+          </div>
+        ) : milestones && milestones.length > 0 ? (
+          // ✅ Show milestones once loaded
+          <div className="space-y-4 sm:space-y-6">{milestoneList}</div>
+        ) : (
+          // ✅ Show empty state only when loading has finished
+          <div className="text-gray-500 text-sm sm:text-base">
+            No milestones available for this roadmap yet.
+          </div>
+        )}
+      </div>
 
 
 
@@ -291,4 +299,3 @@ export default function RoadmapDetailPage() {
 }
 
 
- 
